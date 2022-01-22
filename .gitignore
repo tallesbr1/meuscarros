@@ -30,6 +30,7 @@
 .pub-cache/
 .pub/
 /build/
+/android/
 
 
 # Web related
@@ -39,3 +40,6 @@ lib/generated_plugin_registrant.dart
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 /app-ads.txt
 /google-services.json
+/key.jks
+/android/key.properties
+/android/app/google-services.json

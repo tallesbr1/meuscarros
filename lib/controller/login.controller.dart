@@ -9,6 +9,7 @@ class LoginController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future login() async {
+    
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
@@ -28,7 +29,7 @@ class LoginController {
     user.token = token.token;
     user.authHeaders = await googleUser.authHeaders;
 
-    gravarDadosUsuario();
+    await gravarDadosUsuario();
   }
 
   Future logout() async {

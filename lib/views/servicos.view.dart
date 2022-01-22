@@ -264,18 +264,21 @@ class _ServicosViewState extends State<ServicosView> {
               },
             ),
       
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddServicoView(idCarro: widget.idCarro),
-            ),
-          ).then((value) => setState(() {}));
-        },
-        child: Icon(Icons.add),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 50.0),
+        child: FloatingActionButton(
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddServicoView(idCarro: widget.idCarro),
+              ),
+            ).then((value) => setState(() {}));
+          },
+          child: Icon(Icons.add),
+        ),
       ),
     );
   }

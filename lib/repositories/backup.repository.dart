@@ -6,6 +6,9 @@ import 'package:carros/model/carros.model.dart';
 import 'package:carros/model/servicos.model.dart';
 import 'package:carros/repositories/servicos.repository.dart';
 import 'package:carros/repositories/veiculos.repository.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'dart:convert' show utf8;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
@@ -48,18 +51,39 @@ class Backup {
 
   static Future<bool> criarBackup() async {
     try {
+      
       final controller = new LoginController();
-
+      
+      final GoogleSignIn _googleSignIn = GoogleSignIn();
+      final FirebaseAuth _auth = FirebaseAuth.instance;
       var path = await Backup.gerarJson();
 
-      await controller.login();
+      // await controller.login();
+      final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.getCredential(
+          idToken: googleAuth.idToken, accessToken: googleAuth.accessToken);
+
+      final FirebaseUser firebaseUser =
+          (await _auth.signInWithCredential(credential)).user;
+
+      var auth = await googleUser.authHeaders;
+      final authenticateClient = GoogleAuthClient(auth);
+
+      final driveApi = drive.DriveApi(authenticateClient);
+
+      // final googleSignIn =
+      //     signIn.GoogleSignIn.standard(scopes: [drive.DriveApi.DriveScope]);
 
       final googleSignIn =
-          signIn.GoogleSignIn.standard(scopes: [drive.DriveApi.DriveScope]);
-      final signIn.GoogleSignInAccount account = await googleSignIn.signIn();
+          signIn.GoogleSignIn.standard(scopes: ["https://www.googleapis.com/auth/drive.file","https://www.googleapis.com/auth/drive.appdata"]);
+          
 
-      final authenticateClient = GoogleAuthClient(user.authHeaders);
-      final driveApi = drive.DriveApi(authenticateClient);
+       final signIn.GoogleSignInAccount account = await googleSignIn.signIn();
+
+      // final signIn.GoogleSignInAccount account = await googleSignIn.signIn();
 
       var idanterior = await Backup.getID();
 

@@ -19,18 +19,6 @@ class _HomeState extends State<Home> {
   bool fechouAviso = false;
   bool manutencaoproxima = false;
 
-  final bannerId = "ca-app-pub-7755244434659492/3919035577";
-  BannerAd myBanner;
-  BannerAd buildBannerAd() {
-    return BannerAd(
-        adUnitId: bannerId,
-        size: AdSize.banner,
-        listener: (MobileAdEvent event) {
-          if (event == MobileAdEvent.loaded) {
-            myBanner..show();
-          }
-        });
-  }
 
   removerCarro(int id) async {
     await controller.remover(id);
@@ -48,18 +36,7 @@ class _HomeState extends State<Home> {
 
     verificarManutencaoProxima();
 
-    FirebaseAdMob.instance
-        .initialize(appId: "ca-app-pub-7755244434659492~9598737669");
-
-    myBanner = buildBannerAd()
-      ..load()
-      ..show(anchorType: AnchorType.bottom);
-  }
-
-  @override
-  void dispose() {
-    myBanner?.dispose();
-    super.dispose();
+ 
   }
 
   verificarManutencaoProxima() async {
@@ -75,6 +52,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      
       key: _key,
       onDrawerChanged: (value) {
         if (!value) {
@@ -216,20 +194,24 @@ class _HomeState extends State<Home> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        onPressed: () async {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddCarroView(),
-            ),
-          ).then((value) => setState(() {
-                controller.recuperarCarros();
-              }));
-        },
-        child: Icon(Icons.add),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 50.0),
+        child: FloatingActionButton(
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          
+          onPressed: () async {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddCarroView(),
+              ),
+            ).then((value) => setState(() {
+                  controller.recuperarCarros();
+                }));
+          },
+          child: Icon(Icons.add),
+        ),
       ),
     );
   }
