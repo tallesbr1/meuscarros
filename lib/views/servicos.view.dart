@@ -1,6 +1,7 @@
 import 'package:carros/controller/servicos.controller.dart';
 import 'package:carros/model/servicos.model.dart';
 import 'package:carros/views/addservico.view.dart';
+import 'package:carros/views/addservico.view.dart';
 import 'package:carros/widget/servicoslist.widget.dart';
 import 'package:flutter/material.dart';
 import 'package:carros/utils.dart';
@@ -234,8 +235,8 @@ class _ServicosViewState extends State<ServicosView> {
                                 : Colors.brown,
                             child: Text(
                               (servicos[i].servicofeito == 0)
-                                  ? "Marcar como feito"
-                                  : "Desmarcar como feito",
+                                  ? "Marcar como arquivado"
+                                  : "Desarquivar",
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 20,
@@ -273,7 +274,7 @@ class _ServicosViewState extends State<ServicosView> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => AddServicoView(idCarro: widget.idCarro),
+                builder: (context) => AddServicoView2(idCarro: widget.idCarro),
               ),
             ).then((value) => setState(() {}));
           },

@@ -1,31 +1,39 @@
-import 'package:carros/utils.dart';
-import 'package:mobx/mobx.dart';
-part 'filtrarmarcas.controller.g.dart';
+import 'package:bloc/bloc.dart';
+import 'package:meta/meta.dart';
 
-class FiltrarMarcasController = _FiltrarMarcasControllerBase
-    with _$FiltrarMarcasController;
+import '../../../utils.dart';
 
-abstract class _FiltrarMarcasControllerBase with Store {
-  @observable
-  String filter = '';
+part 'filtrarmarcas_bloc_state.dart';
 
-  @action
-  setFilter(String value) => filter = value;
+class FiltrarMarcasBlocCubit extends Cubit<FiltrarMarcasBlocState> {
+  
+  // List<String> list =[];
 
-  @computed
-  List<String> get listfiltrada {
-    if (filter.isEmpty) {
-      return marcas;
-    } else {
-      return marcas
-          .where((item) => Utils.removerAcentos(item.toLowerCase())
-              .contains(Utils.removerAcentos(filter.toLowerCase())))
-          .toList();
+  FiltrarMarcasBlocCubit() : super(FiltrarMarcasInitial()){
+    getMarcas('');
+  }
+
+  Future<void> getMarcas(String filtro)  async {
+    emit(FiltrarMarcasLoading());
+
+    try {
+
+      if (filtro.trim().length > 0) {
+        
+        var listaFiltrada = marcas.where((item) => Utils.removerAcentos(item.toLowerCase()).contains(Utils.removerAcentos(filtro.toLowerCase()))).toList();
+        
+        emit(FiltrarMarcasLoaded(list: listaFiltrada));
+      }
+      else{
+        emit(FiltrarMarcasLoaded(list: []));
+      }
+      
+    } catch (e) {
+      emit(FiltrarMarcasError(message: "Não foi possível recuperar os dados"));
     }
   }
 
-  @observable
-  ObservableList<String> marcas = [
+  List<String> marcas = [
     'Acura',
     'Agrale',
     'Alfa Romeo',
@@ -333,5 +341,5 @@ abstract class _FiltrarMarcasControllerBase with Store {
     'Willeme',
     'Wallys',
     'Yamaha'
-  ].asObservable();
+  ];
 }

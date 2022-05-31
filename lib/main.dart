@@ -1,15 +1,17 @@
-import 'package:carros/controller/carros.controller.dart';
 import 'package:carros/views/home.view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get_it/get_it.dart';
+
+import 'bloc/cubit/home/carros_bloc_cubit.dart';
 
 void main() {
   GetIt getIt = GetIt.I;
  
   WidgetsFlutterBinding.ensureInitialized();
   
-  getIt.registerSingleton<CarrosController>(CarrosController());
+  // getIt.registerSingleton<CarrosController>(CarrosController());
+  getIt.registerSingleton<CarrosBlocCubit>(CarrosBlocCubit());
   
   runApp(MyApp());
 }

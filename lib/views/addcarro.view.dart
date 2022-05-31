@@ -1,9 +1,9 @@
-import 'package:carros/controller/filtrarmarcas.controller.dart';
-import 'package:carros/controller/carros.controller.dart';
+import 'package:carros/bloc/cubit/filtrarmarcas/filtrarmarcas_bloc_cubit.dart';
+import 'package:carros/bloc/cubit/home/carros_bloc_cubit.dart';
 import 'package:carros/model/carros.model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 class AddCarroView extends StatefulWidget {
@@ -23,8 +23,9 @@ class _AddCarroViewState extends State<AddCarroView> {
 
   var _cor = new TextEditingController(text: "");
 
+  var bloc = FiltrarMarcasBlocCubit();
+
   var _anomodelo = new TextEditingController(text: "2010");
-  final controller = FiltrarMarcasController();
   bool exibirMarcas = false;
 
   static GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
@@ -39,13 +40,9 @@ class _AddCarroViewState extends State<AddCarroView> {
 
   void carregarDados() {
     _modelo.text = widget.model.modelo;
-
     _marca.text = widget.model.marca;
-
     _placa.text = widget.model.placa;
-
     _cor.text = widget.model.cor;
-
     _anomodelo.text = widget.model.anomodelo.toString();
   }
 
@@ -68,7 +65,10 @@ class _AddCarroViewState extends State<AddCarroView> {
                   },
                   controller: _marca,
                   onChanged: (value) {
-                    controller.setFilter(value);
+                    bloc.getMarcas(value);
+                  },
+                  onTap: () {
+                    bloc.getMarcas("");
                     setState(() {
                       exibirMarcas = true;
                     });
@@ -79,9 +79,7 @@ class _AddCarroViewState extends State<AddCarroView> {
                     border: OutlineInputBorder(),
                   ),
                 ),
-                Observer(builder: (_) {
-                  return listModelos();
-                }),
+                listarMarcas(),
                 SizedBox(
                   height: 10,
                 ),
@@ -218,7 +216,7 @@ class _AddCarroViewState extends State<AddCarroView> {
                       _model.id = widget.model.id;
                     }
 
-                    final controller = GetIt.I.get<CarrosController>();
+                    final controller = GetIt.I.get<CarrosBlocCubit>();
 
                     controller.salvar(_model);
 
@@ -235,40 +233,49 @@ class _AddCarroViewState extends State<AddCarroView> {
     );
   }
 
-  Widget listModelos() {
-    return (exibirMarcas == false) || (controller.listfiltrada.length == 0)
-        ? SizedBox(
-            height: 10,
-          )
-        : Card(
-            elevation: 20,
-            child: Container(
-              height: (controller.listfiltrada.length > 3)
-                  ? 150
-                  : (controller.listfiltrada.length.toDouble() * 50),
-              width: double.infinity,
-              child: Observer(
-                builder: (_) {
-                  return ListView.builder(
-                    itemCount: controller.listfiltrada.length,
-                    itemBuilder: (_, index) {
-                      var item = controller.listfiltrada[index];
-                      return TextButton(
-                          onPressed: () {
-                            _marca.text = item.toString();
-                            setState(() {
-                              exibirMarcas = false;
-                            });
-                          },
-                          child: Text(
-                            item.toString(),
-                            style: TextStyle(color: Colors.black),
-                          ));
-                    },
-                  );
-                },
-              ),
-            ),
+  Widget listarMarcas() {
+    return (!exibirMarcas)
+        ? Container()
+        : BlocBuilder<FiltrarMarcasBlocCubit, FiltrarMarcasBlocState>(
+            bloc: bloc,
+            builder: (context, state) {
+              if (state is FiltrarMarcasInitial) {
+                return Container();
+              } else if (state is FiltrarMarcasLoading) {
+                return CircularProgressIndicator();
+              } else if (state is FiltrarMarcasLoaded) {
+                final items = state.list;
+                return Card(
+                  elevation: 20,
+                  child: Container(
+                    height: (items.length > 3)
+                        ? 150
+                        : (items.length.toDouble() * 50),
+                    width: double.infinity,
+                    child: ListView.builder(
+                      itemCount: items.length,
+                      itemBuilder: (_, index) {
+                        var item = items[index];
+                        return TextButton(
+                            onPressed: () {
+                              _marca.text = item.toString();
+
+                              setState(() {
+                                exibirMarcas = false;
+                              });
+                            },
+                            child: Text(
+                              item.toString(),
+                              style: TextStyle(color: Colors.black),
+                            ));
+                      },
+                    ),
+                  ),
+                );
+              } else {
+                return Container();
+              }
+            },
           );
   }
 }

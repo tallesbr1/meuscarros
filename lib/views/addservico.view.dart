@@ -1,6 +1,5 @@
-import 'package:carros/controller/addservico.controller.dart';
-import 'package:carros/controller/carros.controller.dart';
-import 'package:carros/controller/filtrarlocais.controller.dart';
+import 'package:carros/bloc/cubit/filtrarlocais/filtrarlocais_bloc_cubit.dart';
+import 'package:carros/bloc/cubit/filtrarservicos/filtrarservicos_bloc_cubit.dart';
 import 'package:carros/controller/servicos.controller.dart';
 import 'package:carros/model/carros.model.dart';
 import 'package:carros/model/servicos.model.dart';
@@ -9,29 +8,28 @@ import 'package:carros/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_masked_text/flutter_masked_text.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:intl/intl.dart';
-
 import '../notificacoes.dart';
 
-class AddServicoView extends StatefulWidget {
+class AddServicoView2 extends StatefulWidget {
   int idCarro;
 
-  AddServicoView({@required this.idCarro});
+  AddServicoView2({@required this.idCarro});
 
   @override
   _AddServicoViewState createState() => _AddServicoViewState();
 }
 
-class _AddServicoViewState extends State<AddServicoView> {
+class _AddServicoViewState extends State<AddServicoView2> {
   bool exibirServicos = false;
   bool exibirlocais = false;
   String nomeVeiculo;
 
-  var controllerServicos = AddServicoController();
-  var controllerLocais = FiltrarLocaisController();
+  // var controllerLocais = FiltrarLocaisController();
+   var controllerLocais = FiltrarLocaisBlocCubit();
 
   var _descricao = new TextEditingController(text: "");
   var _localservico = new TextEditingController(text: "");
@@ -59,6 +57,8 @@ class _AddServicoViewState extends State<AddServicoView> {
   void _scrollToBottom() {
     _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
   }
+
+  var blocServico = FiltrarServicosBlocCubit();
 
   final price = new NumberFormat("#,##0.00", "pt_BR");
   CarrosModel modelVeiculo;
@@ -100,19 +100,20 @@ class _AddServicoViewState extends State<AddServicoView> {
                     controller: _descricao,
                     textCapitalization: TextCapitalization.sentences,
                     onChanged: (value) {
-                      controllerServicos.setFilter(value);
+                      blocServico.getServicos(value);
                       setState(() {
                         exibirServicos = true;
                       });
+                    },
+                    onTap: (){
+                      blocServico.getServicos("");
                     },
                     decoration: InputDecoration(
                       labelText: "Descrição",
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  Observer(builder: (_) {
-                    return listServicosCadastrados();
-                  }),
+                  listServicosCadastrados(),
                   SizedBox(
                     height: 10,
                   ),
@@ -240,7 +241,7 @@ class _AddServicoViewState extends State<AddServicoView> {
                     controller: _localservico,
                     textCapitalization: TextCapitalization.sentences,
                     onChanged: (value) {
-                      controllerLocais.setFilter(value);
+                      controllerLocais.getLocais(value);
                       setState(() {
                         exibirlocais = true;
                       });
@@ -276,12 +277,15 @@ class _AddServicoViewState extends State<AddServicoView> {
                       if (_formKey.currentState.validate() == false) {
                         return;
                       }
-                      
+
                       int _meses = int.tryParse(_mesesTroca.text);
 
                       String datarealizar = "";
-                      if (int.tryParse(_mesesTroca.text) != null ){          
-                        datarealizar =  DateFormat("yyyy-MM-dd").format(DateTime.now().add(Duration(days: 30 * _meses    ))).toString();
+                      if (int.tryParse(_mesesTroca.text) != null) {
+                        datarealizar = DateFormat("yyyy-MM-dd")
+                            .format(
+                                DateTime.now().add(Duration(days: 30 * _meses)))
+                            .toString();
                       }
 
                       ServicosModel model = ServicosModel(
@@ -295,10 +299,8 @@ class _AddServicoViewState extends State<AddServicoView> {
                           localservico: _localservico.text,
                           outrasinformacoes: _outras.text,
                           servicofeito: 0,
-                          dataarealizar: datarealizar
-                          );
+                          dataarealizar: datarealizar);
 
-                     
                       var controller = ServicosController();
 
                       controller.adicionar(model);
@@ -349,56 +351,67 @@ class _AddServicoViewState extends State<AddServicoView> {
   }
 
   Widget listServicosCadastrados() {
-    return (exibirServicos == false) || (controllerServicos.lista.length == 0)
+    return (!exibirServicos)
         ? SizedBox(
             height: 10,
           )
-        : Card(
-            elevation: 20,
-            child: Container(
-                height: (controllerServicos.lista.length >= 3)
-                    ? 150
-                    : (controllerServicos.lista.length.toDouble() * 50),
-                width: double.infinity,
-                child: Observer(builder: (_) {
-                  return ListView.builder(
-                    itemCount: controllerServicos.lista.length,
-                    itemBuilder: (_, index) {
-                      var item = controllerServicos.lista[index];
-                      return TextButton(
-                          onPressed: () {
-                            _descricao.text = item.toString();
-                            setState(() {
-                              exibirServicos = false;
-                            });
-                          },
-                          child: Text(
-                            item.toString(),
-                            style: TextStyle(color: Colors.black),
-                          ));
-                    },
-                  );
-                })),
+        : BlocBuilder<FiltrarServicosBlocCubit, FiltrarServicosBlocState>(
+            bloc: blocServico,
+            builder: (context, state) {
+              if (state is FiltrarServicosLoading) {
+                return CircularProgressIndicator();
+              } else if (state is FiltrarServicosLoaded) {
+                var list = state.list;
+                return Card(
+                  elevation: 20,
+                  child: Container(
+                    height: (list.length >= 3)
+                        ? 150
+                        : (list.length.toDouble() * 50),
+                    width: double.infinity,
+                    child: ListView.builder(
+                      itemCount: list.length,
+                      itemBuilder: (_, index) {
+                        var item = list[index];
+                        return TextButton(
+                            onPressed: () {
+                              _descricao.text = item.toString();
+                              setState(() {
+                                exibirServicos = false;
+                              });
+                            },
+                            child: Text(
+                              item.toString(),
+                              style: TextStyle(color: Colors.black),
+                            ));
+                      },
+                    ),
+                  ),
+                );
+              } else {
+                return Container();
+              }
+            },
           );
   }
 
   Widget listLocaisCadastrados() {
-    return (exibirlocais == false) || (controllerLocais.lista.length == 0)
+    return (exibirlocais == false) || (controllerLocais.list.length == 0)
         ? SizedBox(
             height: 10,
           )
         : Card(
             elevation: 20,
             child: Container(
-                height: (controllerLocais.lista.length >= 2)
+                height: (controllerLocais.list.length >= 2)
                     ? 100
-                    : (controllerLocais.lista.length.toDouble() * 50),
+                    : (controllerLocais.list.length.toDouble() * 50),
                 width: double.infinity,
                 child: Observer(builder: (_) {
                   return ListView.builder(
-                    itemCount: controllerLocais.lista.length,
+                    itemCount: controllerLocais.list.length,
                     itemBuilder: (_, index) {
-                      var item = controllerLocais.lista[index];
+                      var item = controllerLocais.list[index];
                       return TextButton(
                           onPressed: () {
                             _localservico.text = item.toString();

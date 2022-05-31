@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:carros/controller/carros.controller.dart';
+import 'package:carros/bloc/cubit/home/carros_bloc_cubit.dart';
 import 'package:carros/controller/login.controller.dart';
 import 'package:carros/model/carros.model.dart';
 import 'package:carros/model/servicos.model.dart';
@@ -174,10 +174,10 @@ class Backup {
 
       var carrosRep = VeiculosRepository();
       await carrosRep.executeSql('delete from veiculos');
-      final controller = GetIt.I.get<CarrosController>();
+      final bloc = GetIt.I.get<CarrosBlocCubit>();
 
       for (var carro in ret.carros) {
-        await controller.salvar(carro);
+        await bloc.salvar(carro);
       }
 
       // await carros.adicionar(ret.carros[0]);
